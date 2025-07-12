@@ -288,8 +288,8 @@
         </div>
         
         <div id="successSection" class="success-message">
-            <h3>Payment Link Created!</h3>
-            <p>Check your email for the payment link. You will be redirected shortly...</p>
+            <h3>Redirecting to Stripe Checkout...</h3>
+            <p>Please wait while we prepare your secure payment session.</p>
         </div>
         
         <div id="mainContent" style="display: none;">
@@ -356,8 +356,8 @@
     </div>
     
     <script>
-        // Configuration - REPLACE WITH YOUR ACTUAL WEBHOOK URL
-        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/YOUR_ACCOUNT_ID/YOUR_WEBHOOK_ID/';
+        // Configuration - Updated with Vercel URL
+        const VERCEL_API_URL = 'https://awis-stripe-checkout-5rtht8drj-aldos-projects-0aca6335.vercel.app/api/create-checkout-session';
         
         // State management
         let customerData = null;
@@ -561,7 +561,7 @@
             selectAll.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < allCheckboxes.length;
         }
         
-        // Process payment
+        // Process payment - Updated to use Vercel API and redirect to Stripe
         async function processPayment(method) {
             if (isProcessing) return;
             
@@ -587,66 +587,58 @@
                 const invoiceIds = Array.from(selectedInvoices);
                 const selectedInvoiceDetails = invoices.filter(inv => invoiceIds.includes(inv.id));
                 
+                // Calculate amounts
+                const subtotalCents = Math.round(totalAmount * 100);
+                const ccFeeCents = method === 'card' ? Math.round(totalAmount * 0.04 * 100) : 0;
+                const totalCents = subtotalCents + ccFeeCents;
+                
                 const paymentData = {
                     customer_email: customerData.email,
                     payment_method: method,
-                    invoice_ids: invoiceIds.join(','),
+                    invoice_ids: invoiceIds,
                     invoice_details: selectedInvoiceDetails,
-                    subtotal: totalAmount.toString(),
-                    cc_fee: (method === 'card' ? totalAmount * 0.04 : 0).toString(),
-                    total: (method === 'card' ? totalAmount * 1.04 : totalAmount).toString(),
-                    timestamp: new Date().toISOString()
+                    amount_cents: totalCents,
+                    subtotal_cents: subtotalCents,
+                    cc_fee_cents: ccFeeCents,
+                    success_url: `${window.location.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+                    cancel_url: window.location.href
                 };
                 
                 // Log data for debugging
-                console.log('Sending payment data:', paymentData);
+                console.log('Sending payment data to Vercel:', paymentData);
                 
-                // Create a hidden iframe for form submission
-                const iframe = document.createElement('iframe');
-                iframe.name = 'zapier_webhook_frame';
-                iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-                
-                // Create a form and submit it (bypasses CORS)
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = ZAPIER_WEBHOOK_URL;
-                form.target = 'zapier_webhook_frame';
-                
-                // Add all payment data as hidden fields
-                Object.keys(paymentData).forEach(key => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = key;
-                    input.value = typeof paymentData[key] === 'object' 
-                        ? JSON.stringify(paymentData[key]) 
-                        : paymentData[key];
-                    form.appendChild(input);
+                // Call Vercel API
+                const response = await fetch(VERCEL_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(paymentData)
                 });
                 
-                // Add form to page and submit
-                document.body.appendChild(form);
-                form.submit();
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
                 
-                // Clean up after submission
-                setTimeout(() => {
-                    document.body.removeChild(form);
-                    document.body.removeChild(iframe);
-                }, 1000);
+                const data = await response.json();
                 
-                // Show success message regardless of CORS error
-                setTimeout(() => {
+                if (data.sessionUrl) {
+                    // Show success message
                     document.getElementById('mainContent').style.display = 'none';
                     document.getElementById('successSection').style.display = 'block';
                     
-                    // Simulate redirect (in production, Zapier would send back the payment URL)
+                    // Redirect to Stripe Checkout
                     setTimeout(() => {
-                        alert('Payment link created! In production, you would be redirected to Stripe now.');
-                    }, 2000);
-                }, 1000);
+                        window.location.href = data.sessionUrl;
+                    }, 1500);
+                } else {
+                    throw new Error('No session URL received from server');
+                }
                 
             } catch (error) {
-                showError(error.message);
+                console.error('Payment error:', error);
+                showError(error.message || 'An error occurred while processing your payment. Please try again.');
                 
                 // Reset button states
                 achButton.classList.remove('processing');
