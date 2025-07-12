@@ -357,7 +357,7 @@
     
     <script>
         // Configuration - REPLACE WITH YOUR ACTUAL WEBHOOK URL
-        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/21101563/u2ooovc/';
+        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/YOUR_ACCOUNT_ID/YOUR_WEBHOOK_ID/';
         
         // State management
         let customerData = null;
@@ -484,8 +484,8 @@
         function setupEventListeners() {
             document.getElementById('selectAll').addEventListener('change', handleSelectAll);
             document.getElementById('invoicesList').addEventListener('click', handleInvoiceClick);
-            document.getElementById('achButton').addEventListener('click', () => processPayment('ach'));
-            document.getElementById('creditButton').addEventListener('click', () => processPayment('credit'));
+            document.getElementById('achButton').addEventListener('click', () => processPayment('us_bank_account'));
+            document.getElementById('creditButton').addEventListener('click', () => processPayment('card'));
         }
         
         // Handle select all
@@ -577,7 +577,7 @@
             achButton.classList.add('processing');
             creditButton.classList.add('processing');
             
-            if (method === 'ach') {
+            if (method === 'us_bank_account') {
                 achButtonText.textContent = 'Processing...';
             } else {
                 creditButtonText.textContent = 'Processing...';
@@ -593,8 +593,8 @@
                     invoice_ids: invoiceIds.join(','),
                     invoice_details: selectedInvoiceDetails,
                     subtotal: totalAmount.toString(),
-                    cc_fee: (method === 'credit' ? totalAmount * 0.04 : 0).toString(),
-                    total: (method === 'credit' ? totalAmount * 1.04 : totalAmount).toString(),
+                    cc_fee: (method === 'card' ? totalAmount * 0.04 : 0).toString(),
+                    total: (method === 'card' ? totalAmount * 1.04 : totalAmount).toString(),
                     timestamp: new Date().toISOString()
                 };
                 
