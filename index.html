@@ -357,7 +357,7 @@
     
     <script>
         // Configuration - REPLACE WITH YOUR ACTUAL WEBHOOK URL
-        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/21101563/u2ooovc/';
+        const ZAPIER_WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/YOUR_ACCOUNT_ID/YOUR_WEBHOOK_ID/';
         
         // State management
         let customerData = null;
@@ -592,33 +592,58 @@
                     payment_method: method,
                     invoice_ids: invoiceIds.join(','),
                     invoice_details: selectedInvoiceDetails,
-                    subtotal: totalAmount,
-                    cc_fee: method === 'credit' ? totalAmount * 0.04 : 0,
-                    total: method === 'credit' ? totalAmount * 1.04 : totalAmount,
+                    subtotal: totalAmount.toString(),
+                    cc_fee: (method === 'credit' ? totalAmount * 0.04 : 0).toString(),
+                    total: (method === 'credit' ? totalAmount * 1.04 : totalAmount).toString(),
                     timestamp: new Date().toISOString()
                 };
                 
-                // Send to Zapier webhook
-                // Note: Due to CORS, we can't check the response, but the data will still be sent
-                fetch(ZAPIER_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(paymentData)
-                }).catch(error => {
-                    // Ignore CORS errors - the webhook still receives the data
-                    console.log('Expected CORS error:', error);
+                // Log data for debugging
+                console.log('Sending payment data:', paymentData);
+                
+                // Create a hidden iframe for form submission
+                const iframe = document.createElement('iframe');
+                iframe.name = 'zapier_webhook_frame';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                // Create a form and submit it (bypasses CORS)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = ZAPIER_WEBHOOK_URL;
+                form.target = 'zapier_webhook_frame';
+                
+                // Add all payment data as hidden fields
+                Object.keys(paymentData).forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = typeof paymentData[key] === 'object' 
+                        ? JSON.stringify(paymentData[key]) 
+                        : paymentData[key];
+                    form.appendChild(input);
                 });
                 
-                // Show success message
-                document.getElementById('mainContent').style.display = 'none';
-                document.getElementById('successSection').style.display = 'block';
+                // Add form to page and submit
+                document.body.appendChild(form);
+                form.submit();
                 
-                // Simulate redirect (in production, Zapier would send back the payment URL)
+                // Clean up after submission
                 setTimeout(() => {
-                    alert('In production, you would be redirected to the Stripe payment page now.');
-                }, 3000);
+                    document.body.removeChild(form);
+                    document.body.removeChild(iframe);
+                }, 1000);
+                
+                // Show success message regardless of CORS error
+                setTimeout(() => {
+                    document.getElementById('mainContent').style.display = 'none';
+                    document.getElementById('successSection').style.display = 'block';
+                    
+                    // Simulate redirect (in production, Zapier would send back the payment URL)
+                    setTimeout(() => {
+                        alert('Payment link created! In production, you would be redirected to Stripe now.');
+                    }, 2000);
+                }, 1000);
                 
             } catch (error) {
                 showError(error.message);
@@ -629,9 +654,8 @@
                 achButtonText.textContent = 'Pay via ACH';
                 creditButtonText.textContent = 'Pay via Credit Card';
                 updateSummary();
+                isProcessing = false;
             }
-            
-            isProcessing = false;
         }
         
         // Show error
