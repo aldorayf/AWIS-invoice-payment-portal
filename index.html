@@ -357,7 +357,7 @@
     
     <script>
         // Configuration - Updated with Vercel URL
-        const VERCEL_API_URL = 'https://awis-stripe-checkout.vercel.app/api/create-checkout-session';
+        const VERCEL_API_URL = 'https://awis-stripe-checkout-5rtht8drj-aldos-projects-0aca6335.vercel.app/api/create-checkout-session';
         
         // State management
         let customerData = null;
@@ -400,48 +400,34 @@
             }
         }
         
-        // Simulate loading customer data (replace with actual API call)
+        // Load customer data from API
         async function loadCustomerData(email) {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // In production, this would be an API call to your server
-            // which would fetch data from QuickBooks
-            customerData = {
-                email: email,
-                balance: -92.00,
-                invoices: [
-                    {
-                        id: 'B2501202',
-                        amount: 2.00,
-                        date: 'July 11, 2025',
-                        dueDate: 'August 1, 2025',
-                        description: 'Customs Services'
-                    },
-                    {
-                        id: 'B2501185',
-                        amount: 45.00,
-                        date: 'July 8, 2025',
-                        dueDate: 'July 29, 2025',
-                        description: 'ISF Filing Services'
-                    },
-                    {
-                        id: 'B2501156',
-                        amount: 45.00,
-                        date: 'July 2, 2025',
-                        dueDate: 'July 23, 2025',
-                        description: 'Entry Processing'
-                    }
-                ]
-            };
-            
-            // Update UI with customer data
-            document.getElementById('customerEmail').textContent = customerData.email;
-            document.getElementById('accountBalance').textContent = `$${Math.abs(customerData.balance).toFixed(2)}`;
-            document.getElementById('accountBalance').style.color = customerData.balance < 0 ? '#dc3545' : '#28a745';
-            
-            // Render invoices
-            renderInvoices(customerData.invoices);
+            try {
+                // Show loading state
+                document.getElementById('customerEmail').textContent = 'Loading...';
+                document.getElementById('accountBalance').textContent = 'Loading...';
+                
+                // Call your API to get customer invoices
+                const response = await fetch(`https://awis-stripe-checkout.vercel.app/api/get-customer-invoices?email=${encodeURIComponent(email)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch customer data: ${response.status}`);
+                }
+                
+                customerData = await response.json();
+                
+                // Update UI with customer data
+                document.getElementById('customerEmail').textContent = customerData.email;
+                document.getElementById('accountBalance').textContent = `${Math.abs(customerData.balance).toFixed(2)}`;
+                document.getElementById('accountBalance').style.color = customerData.balance < 0 ? '#dc3545' : '#28a745';
+                
+                // Render invoices
+                renderInvoices(customerData.invoices);
+                
+            } catch (error) {
+                console.error('Error loading customer data:', error);
+                showError('Failed to load invoice data. Please try again later.');
+            }
         }
         
         // Render invoices
