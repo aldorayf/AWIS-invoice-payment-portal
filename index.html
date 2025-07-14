@@ -12,11 +12,11 @@
         }
         
         :root {
-            --primary-blue: #003d7a;
-            --secondary-blue: #0066cc;
-            --accent-red: #cc0000;
+            --primary-blue: #1e4b8b;
+            --secondary-blue: #2563a8;
+            --accent-red: #dc2626;
             --light-blue: #4a90e2;
-            --wave-blue: #5cb3cc;
+            --wave-blue: #3b82c4;
             --text-gray: #4a5568;
         }
         
@@ -52,7 +52,7 @@
             left: 0;
             right: 0;
             height: 40px;
-            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 40" xmlns="http://www.w3.org/2000/svg"><path d="M0,20 Q300,0 600,20 T1200,20 L1200,40 L0,40 Z" fill="%235cb3cc" opacity="0.3"/></svg>') no-repeat bottom;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 40" xmlns="http://www.w3.org/2000/svg"><path d="M0,20 Q300,0 600,20 T1200,20 L1200,40 L0,40 Z" fill="%233b82c4" opacity="0.4"/></svg>') no-repeat bottom;
             background-size: cover;
         }
         
@@ -61,36 +61,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
-        }
-        
-        .logo-anchor {
-            width: 60px;
-            height: 60px;
-            position: relative;
-        }
-        
-        .logo-anchor svg {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .logo-text {
-            text-align: left;
-        }
-        
-        .logo-text .company-name {
-            font-size: 32px;
-            font-weight: bold;
-            color: white;
-            margin: 0;
-            line-height: 1.2;
-        }
-        
-        .logo-text .company-subtitle {
-            font-size: 18px;
-            color: rgba(255, 255, 255, 0.9);
-            margin: 0;
         }
         
         .customer-info {
@@ -333,14 +303,6 @@
         }
         
         @media (max-width: 600px) {
-            .logo-container {
-                flex-direction: column;
-            }
-            
-            .logo-text {
-                text-align: center;
-            }
-            
             .invoice-details {
                 grid-template-columns: 1fr;
             }
@@ -359,23 +321,9 @@
     <div class="container">
         <div class="header">
             <div class="logo-container">
-                <div class="logo-anchor">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Anchor design -->
-                        <path d="M50 10 Q40 20 40 30 Q40 40 50 40 Q60 40 60 30 Q60 20 50 10" fill="white" opacity="0.9"/>
-                        <rect x="48" y="30" width="4" height="40" fill="white" opacity="0.9"/>
-                        <rect x="30" y="45" width="40" height="4" fill="white" opacity="0.9"/>
-                        <path d="M30 70 Q20 80 10 85 Q20 85 30 75" stroke="white" stroke-width="3" fill="none" opacity="0.9"/>
-                        <path d="M70 70 Q80 80 90 85 Q80 85 70 75" stroke="white" stroke-width="3" fill="none" opacity="0.9"/>
-                        <circle cx="50" cy="25" r="4" fill="white" opacity="0.9"/>
-                    </svg>
-                </div>
-                <div class="logo-text">
-                    <h1 class="company-name">All Ways</h1>
-                    <p class="company-subtitle">International CHB</p>
-                </div>
+                <img src="allways-logo.png" alt="All Ways International CHB" style="height: 80px; width: auto;">
             </div>
-            <h2>Select Invoices to Pay</h2>
+            <h2 style="margin-top: 20px;">Select Invoices to Pay</h2>
         </div>
         
         <div id="loadingSection" class="loading">
