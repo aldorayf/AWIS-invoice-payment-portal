@@ -299,7 +299,10 @@
                     <span>Customer:</span>
                     <span id="customerName">Loading...</span>
                 </div>
-               
+                <div class="info-row">
+                    <span>Customer ID:</span>
+                    <span id="customerId">Loading...</span>
+                </div>
                 <div class="info-row">
                     <span>Account Balance:</span>
                     <span id="accountBalance" style="font-weight: bold;">Loading...</span>
@@ -439,14 +442,35 @@
                 customerData = await response.json();
                 console.log('Customer data received:', customerData);
                 
+                // Validate customer data
+                if (!customerData) {
+                    throw new Error('No customer data received from server');
+                }
+                
                 // Update UI with customer data
-                document.getElementById('customerName').textContent = customerData.customerName;
-                document.getElementById('customerId').textContent = customerData.customerId;
-                document.getElementById('accountBalance').textContent = `$${Math.abs(customerData.balance).toFixed(2)}`;
-                document.getElementById('accountBalance').style.color = customerData.balance < 0 ? '#dc3545' : '#28a745';
+                const customerNameEl = document.getElementById('customerName');
+                const customerIdEl = document.getElementById('customerId');
+                const accountBalanceEl = document.getElementById('accountBalance');
+                
+                if (customerNameEl) {
+                    customerNameEl.textContent = customerData.customerName || customerData.DisplayName || 'N/A';
+                }
+                if (customerIdEl) {
+                    customerIdEl.textContent = customerData.customerId || customerData.Id || 'N/A';
+                }
+                if (accountBalanceEl) {
+                    const balance = customerData.balance || customerData.Balance || 0;
+                    accountBalanceEl.textContent = `$${Math.abs(balance).toFixed(2)}`;
+                    accountBalanceEl.style.color = balance < 0 ? '#dc3545' : '#28a745';
+                }
                 
                 // Render invoices
-                renderInvoices(customerData.invoices);
+                if (customerData.invoices && Array.isArray(customerData.invoices)) {
+                    renderInvoices(customerData.invoices);
+                } else {
+                    console.error('No invoices data received or invalid format');
+                    renderInvoices([]);
+                }
                 
             } catch (error) {
                 console.error('Error loading customer data:', error);
